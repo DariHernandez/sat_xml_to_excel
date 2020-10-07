@@ -38,6 +38,14 @@ def extract_information_xml (file):
     fileInfo['emisor']       = emisor.get('Nombre')
     fileInfo['uuid']         = timbreFiscalDigital.get('UUID')
 
+    # Replace name by rfc
+    if not fileInfo['emisor']:
+        fileInfo['emisor']   = emisor.get('Rfc')
+        fileInfo['comentarios']   = "Sin nombre de emisor"
+    else: 
+        fileInfo['comentarios']   = " "
+
+
     # Extract specific information
     if fileInfo['comprobante'] == 'P': 
         # Extract information of type P
@@ -85,7 +93,6 @@ def formatDataEgresos (allInfoXml):
         currentInfo = []
 
         # Date
-        currentInfo.append (info['fecha'])
         currentInfo.append (info['fecha'][0:10])
 
         # Type of CFDI
@@ -137,7 +144,7 @@ def formatDataEgresos (allInfoXml):
             currentInfo.append (total)
 
 
-        currentInfo.append ("")
+        currentInfo.append (info['comentarios'])
         formatedData.append (currentInfo)
 
     return formatedData
