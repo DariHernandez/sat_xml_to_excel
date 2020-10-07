@@ -1,7 +1,7 @@
 #! python3
 #Extract infomation from xml files and copy to the clipboard
 
-import os, openpyxl, logging
+import os, openpyxl, logging, string
 from xml.etree import ElementTree
 logging.basicConfig(level=logging.DEBUG, format=' %(asctime)s - %(levelname)s - %(message)s')
 
@@ -147,7 +147,7 @@ def format_text (data):
 path = "/home/dari/Documentos/dari_developer_fact"
 
 for folder in os.listdir (path):
-    if os.path.isdir (folder):  
+    if os.path.isdir (os.path.join(path, folder)):  
         filePath = os.path.join (path, (os.path.basename (path) + ".xlsx"))
         print (filePath)
 
@@ -158,11 +158,17 @@ for folder in os.listdir (path):
             wb = openpyxl.Workbook()
 
         # Make new sheet
-        sheet = wb.create_sheet(folder)
+        sheetName = folder
+        if not sheetName in wb.sheetnames: 
+            sheet = wb.create_sheet(folder)
+        else: 
+            sheet = wb[sheetName]
         
         # Set info
         uuids = []
         row = 1
+        col = 0 
+        chars = list(string.ascii_lowercase)
         allFilesInfo = []
 
         # Open and copy info for each xml file
@@ -172,28 +178,32 @@ for folder in os.listdir (path):
                 info = extract_information_xml(xlmPath)
 
                 # Date
-                sheet['A' + str(row)] = info['fecha']
-                sheet['B' + str(row)] = info['fecha'][0:10]
+                sheet[chars[col + 0] + str(row)] = info['fecha']
+                sheet[chars[col + 1] + str(row)] = info['fecha'][0:10]
 
                 # Type of CFDI
                 if info['comprobante'] == 'I':
-                    sheet['C' + str(row)] = 'X'
+                    sheet[chars[col + 2] + str(row)] = 'X'
                 elif info['comprobante'] == 'P':
-                    sheet['D' + str(row)] = 'X'
+                    sheet[chars[col + 3] + str(row)] = 'X'
                 elif info['comprobante'] == 'E': 
-                    sheet['E' + str(row)] = 'X'
+                    sheet[chars[col + 4] + str(row)] = 'X'
 
                 # UUID
-                ## Dont repeat uuids
+                uuidInUse = False
                 for uuid in uuids: 
                     if uuid[-4:] == info['uuid'][-4]: 
-                        sheet['F' + str(row)] = info['fecha'][-8:]
-                    else: 
-                        sheet['F' + str(row)] = info['fecha'][-4:]
+                        # Dont repeat uuids
+                        uuidInUse = True
+
+                if uuidInUse: 
+                    sheet[chars[col + 5] + str(row)] = info['uuid'][-8:]
+                else: 
+                    sheet[chars[col + 5] + str(row)] = info['uuid'][-4:]
                 uuids.append(info['uuid'])
                 
                 # Name
-                sheet['F' + str(row)] = info['emisor']
+                sheet[chars[col + 6] +  str(row)] = info['emisor']
 
                 #quantities
                 importe = info['subtotal'] - info ['descuento']
@@ -201,19 +211,19 @@ for folder in os.listdir (path):
                 total = info['total']
 
                 if 'metodoPago' in info.keys() and info['metodoPago'] == 'PPD': #Check if is PDD
-                    sheet['G' + str(row)] = ""
-                    sheet['H' + str(row)] = ""
-                    sheet['I' + str(row)] = importe
-                    sheet['J' + str(row)] = iva
-                    sheet['K' + str(row)] = total
+                    sheet[chars[col + 7] + str(row)] = ""
+                    sheet[chars[col + 8] + str(row)] = ""
+                    sheet[chars[col + 9] + str(row)] = importe
+                    sheet[chars[col + 10] + str(row)] = iva
+                    sheet[chars[col + 11] + str(row)] = total
                 else:
-                    sheet['G' + str(row)] = importe
-                    sheet['H' + str(row)] = iva
-                    sheet['I' + str(row)] = ""
-                    sheet['J' + str(row)] = ""
-                    sheet['K' + str(row)] = total
+                    sheet[chars[col + 7] + str(row)] = importe
+                    sheet[chars[col + 8] + str(row)] = iva
+                    sheet[chars[col + 9] + str(row)] = ""
+                    sheet[chars[col + 10] + str(row)] = ""
+                    sheet[chars[col + 11] + str(row)] = total
 
-                sheet['L' + str(row)] = "" 
+                sheet[chars[col + 12] + str(row)] = "" 
                 row += 1
         wb.save (filePath)
 
