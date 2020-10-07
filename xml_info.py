@@ -29,13 +29,16 @@ def extract_information_xml (file):
     #Open specific tasg to get UUID and MONTO
     prefix = '{' + 'http://www.sat.gob.mx/'
     emisor = root.find(prefix + 'cfd/3}Emisor')
+    receptor = root.find(prefix + 'cfd/3}Receptor')
     complemento = root.find(prefix + 'cfd/3}Complemento')
     timbreFiscalDigital = complemento.find (prefix + 'TimbreFiscalDigital}TimbreFiscalDigital')
     
     #Extract general information
     fileInfo['fecha']        = root.get('Fecha')
+    fileInfo['folio']        = root.get('Folio')
     fileInfo['comprobante']  = root.get('TipoDeComprobante')
     fileInfo['emisor']       = emisor.get('Nombre')
+    fileInfo['receptor']     = receptor.get('Nombre')
     fileInfo['uuid']         = timbreFiscalDigital.get('UUID')
 
     # Replace name by rfc
@@ -76,11 +79,14 @@ def shortXmlByDate (xmlsInfo):
     
     #Short data
     dates.sort()
+
     for date in dates: 
         for xmlInfo in xmlsInfo: 
             if date == xmlInfo['fecha']: 
                 shortedData.append (xmlInfo)
-        
+                break
+    
+    print (len(shortedData))
     return shortedData
 
 def formatDataEgresos (allInfoXml): 
@@ -149,18 +155,64 @@ def formatDataEgresos (allInfoXml):
 
     return formatedData
 
-def writeData (sheet, col, row, data):
-    currentRow = row
-    chars = list(string.ascii_lowercase)
+def formatDataIngresos (allInfoXml): 
+    """Format data to Egresos info"""
+    formatedData = []
+    uuids = []
 
-    for dataLine in data: 
-        currentCol = col 
-        for dataItem in dataLine:
-            sheet[chars[currentCol-1] + str(currentRow)] = dataItem
-            currentCol += 1
-        currentRow += 1 
+    # Write data in the file
+    for info in allInfoXml: 
+        currentInfo = []
+
+        # Date
+        currentInfo.append (info['fecha'][0:10])
+
+        # Folio
+        currentInfo.append (info['folio'])
+        
+        # Name
+        currentInfo.append (info['receptor'])
+
+        #quantities
+        importe = info['subtotal'] - info ['descuento']
+        iva = info ['total'] - importe
+        total = info['total']
+
+        # Público en general y clientes
+        if info['receptor'] == "PÚBLICO EN GENERAL": 
+            currentInfo.append (importe)
+            currentInfo.append ("")
+        else: 
+            currentInfo.append (importe)
+            currentInfo.append ("")
+
+        currentInfo.append (importe)
+        currentInfo.append (iva)
+        currentInfo.append (total)
+
+        formatedData.append (currentInfo)
+
+    return formatedData
+
 
 def getXmlEgresosInfo (folder):
+    """ Get info by xml files, short and format"""
+    extractedInfo = []
+
+    # Save data in a list
+    for file in os.listdir(os.path.join(folder)):
+        if file.endswith('.xml'): 
+            xlmPath = os.path.join (folder, file)
+            info = extract_information_xml(xlmPath)
+            extractedInfo.append (info)
+
+    # Short data
+    shortedInfo = shortXmlByDate (extractedInfo)
+    formatedInfo = formatDataEgresos(shortedInfo)
+
+    return formatedInfo
+
+def getXmlIngresosInfo (folder):
     """ Get info by xml files, short and format"""
     extractedInfo = []
 
@@ -173,6 +225,7 @@ def getXmlEgresosInfo (folder):
         
     # Short data
     shortedInfo = shortXmlByDate (extractedInfo)
-    formatedInfo = formatDataEgresos(shortedInfo)
+    formatedInfo = formatDataIngresos (shortedInfo)
     return formatedInfo
+
 
