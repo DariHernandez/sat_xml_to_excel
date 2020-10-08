@@ -8,15 +8,18 @@ from xml.etree import ElementTree
 def getIngresoEgreso (comprobante, cantidad): 
     """Get in negative o positive number in function of type of bill"""
     #Check if the value exist
+    value = 0
     if cantidad:
         if comprobante == 'I': 
             # Return positive
-            return float(cantidad)
+            value = float(cantidad)
         elif comprobante == 'E':
             #Return negative
-            return -float(cantidad)
+            value = float(cantidad)
     else: 
-        return 0
+        value = 0
+    
+    return round(value, 2)
 
 def extract_information_xml (file):
     """Extract information from xml files"""
