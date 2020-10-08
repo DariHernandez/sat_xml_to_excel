@@ -3,7 +3,7 @@
 
 import os, openpyxl, string, pprint
 from xml.etree import ElementTree
-from xml_info import getXmlEgresosInfo, getXmlEgresosInfo
+from xml_info import getXmlEgresosInfo, getXmlIngresosInfo
 
 def writeInfo (sheet, col, row, data):
     """ Write data in a wb sheet"""
@@ -16,41 +16,8 @@ def writeInfo (sheet, col, row, data):
             sheet[chars[currentCol-1] + str(currentRow)] = dataItem
             currentCol += 1
         currentRow += 1 
-
-def writeTable (path, folder, subfolder, titles, col, row): 
-    """ Make a table in the sheet of the wb, with the info from the xml files"""
-    filePath = os.path.join (path, (os.path.basename (path) + ".xlsx"))
-
-    # Open file o make new file and sheets
-    sheetName = folder
-    try: 
-        wb = openpyxl.load_workbook(filePath)
-        # Use or make sheet
-        if not sheetName in wb.sheetnames: 
-            sheet = wb.create_sheet(folder)
-        else: 
-            sheet = wb[sheetName]
-    except FileNotFoundError: 
-        wb = openpyxl.Workbook()
-        # Make sheet
-        sheet = wb.active
-        sheet.title = sheetName
-
-    if not sheetName in wb.sheetnames: 
-        sheet = wb.create_sheet(folder)
-    else: 
-        sheet = wb[sheetName]
     
-    formatedShortedInfo = getXmlEgresosInfo (os.path.join(path, folder, subfolder))
-
-    writeInfo (sheet, col, row, titles)
-    writeInfo (sheet, col, row+2, formatedShortedInfo)
-
-
-    print ('XMl info is now in "%s" sheet, on table "%s"'% (sheetName, subfolder))
-
-    wb.save (filePath)
-    print ("File '%s' saved." % (filePath))
+    return currentRow
 
 def formatTitles (currentTitles): 
     """ Format dicc of titles for the spreadsheet table"""
@@ -71,13 +38,30 @@ def formatTitles (currentTitles):
     titlesFormated.append (subtitles)
     return titlesFormated
 
+def writeTable (sheet, col, row, table): 
+    """ Write all information of the table"""
+    currentRow = row
+    for seccion in table:
+        currentRow = writeInfo (sheet, col=col, row=currentRow, data=seccion)
+
+
+
 path = "/home/dari/Documentos/dari_developer_fact"
+filePath = os.path.join (path, (os.path.basename (path) + ".xlsx"))
 allInfo = []
 ingresosFolder = "REGISTRO ANALÍTICO DE EGRESOS"
 egresosFolder = "REGISTRO ANALÍTICO DE INGRESOS"
 
+titlesIngreso = {'FECHA': [], 
+                 'FOLIO': [],
+                 'CLIENTE': [],
+                 'IMPORTE': ['PÚBLICO G.', 'CLIENTES'],
+                 'SUBTOTAL': [],
+                 'IVA': [],
+                 'TOTAL': []}
+
 titlesEgreso = {'FECHA': [], 
-                'EFECTO': ['ING', 'EGR', 'PAG'],
+                'IMPORTE': ['ING', 'EGR', 'PAG'],
                 'FOLIO': [],
                 'PROVEEDOR': [],
                 'PAGADO': ['IMPORTE', 'IVA'],
@@ -86,48 +70,58 @@ titlesEgreso = {'FECHA': [],
                 'COMENTARIOS': []}
 
 formatedEgresoTitles = formatTitles (titlesEgreso)
+formatedIngresoTitles = formatTitles (titlesIngreso)
 
-for currentPath, subfolders, files in os.walk (path): 
-    folder = os.path.basename (currentPath)
-    for subfolder in subfolders: 
-        if subfolder == "REGISTRO ANALÍTICO DE EGRESOS": 
-            writeTable (path, folder, subfolder, formatedEgresoTitles, 1, 1)
-        elif subfolder == "REGISTRO ANALÍTICO DE INGRESOS": 
-            print (folder)
+# Open file o make new file and sheets
+try: 
+    wb = openpyxl.load_workbook(filePath)
+except FileNotFoundError: 
+    wb = openpyxl.Workbook()
 
+for folder in os.listdir (path): 
+    if os.path.isdir (os.path.join(path, folder)): 
 
-
-"""
-for folder in os.listdir (path):
-    if os.path.isdir (os.path.join(path, folder)):  
-        filePath = os.path.join (path, (os.path.basename (path) + ".xlsx"))
-
-        # Open file o make new file and sheets
         sheetName = folder
-        try: 
-            wb = openpyxl.load_workbook(filePath)
-            # Use or make sheet
-            if not sheetName in wb.sheetnames: 
-                sheet = wb.create_sheet(folder)
+
+        # Open or make sheet
+        if sheetName in wb.sheetnames: 
+            # Replace or sheet with other name
+            userContinue = input ('Sheet "%s" already exist.' % (sheetName) + \
+            '¿Do you want to replace with the new xml info? (y/n)  ' )
+            if userContinue.lower()[0] == "y":
+                wb.remove (wb[sheetName])
+                sheet = wb.create_sheet(sheetName)
             else: 
-                sheet = wb[sheetName]
-        except FileNotFoundError: 
-            wb = openpyxl.Workbook()
-            # Make sheet
+                counterSheet = 1
+                newSheetName = sheetName + counterSheet
+                while newSheetName in wb.sheetnames: 
+                    counterSheet += 1
+                sheet = wb.create_sheet(newSheetName)
+        elif len(wb.sheetnames) == 1: 
+            # Reaame the only sheet of the new file
             sheet = wb.active
             sheet.title = sheetName
-
-        if not sheetName in wb.sheetnames: 
-            sheet = wb.create_sheet(folder)
         else: 
-            sheet = wb[sheetName]
+            sheet = wb.create_sheet(sheetName)
         
-        formatedShortedInfo = getXmlEgresosInfo (os.path.join(path, folder))
+        # Seach and process files
+        for subfolder in os.listdir (os.path.join (path, folder)):
+            if os.path.isdir (os.path.join(path, folder, subfolder)): 
+                table = []
+                table.append([[subfolder]])
+                if subfolder == "REGISTRO ANALÍTICO DE EGRESOS": 
+                    # Write table
+                    table.append (formatedEgresoTitles)
+                    table.append (getXmlEgresosInfo (os.path.join(path, folder, subfolder)))
+                    writeTable (sheet, col=11, row=1, table=table)
+                    print ('XML files information written in "%s" sheet, "%s" table.' % (sheetName, subfolder))
 
-        writeInfo (sheet, 1, 1, formatedEgresoTitles)
-        writeInfo (sheet, 1, 3, formatedShortedInfo)
-        print ("XMl info is now in '%s' sheet." % (sheetName))
+                elif subfolder == "REGISTRO ANALÍTICO DE INGRESOS": 
+                    # Write table
+                    table.append (formatedIngresoTitles)
+                    table.append (getXmlIngresosInfo (os.path.join(path, folder, subfolder)))
+                    writeTable (sheet, col=1, row=1, table=table)
+                    print ('XML files information written in "%s" sheet, "%s" table.' % (sheetName, subfolder))
 
-        wb.save (filePath)
-        print ("File '%s' saved." % (filePath))
-"""
+print ("File '%s' saved." % (filePath))
+wb.save (filePath)

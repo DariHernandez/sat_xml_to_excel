@@ -59,6 +59,8 @@ def extract_information_xml (file):
         fileInfo['subtotal'] = float(monto)/1.16
         fileInfo['total'] = float(monto)
         fileInfo['descuento'] =  0
+    elif fileInfo['comprobante'] == 'N':
+        return None 
     else: 
         # Extract information for type I and E
         fileInfo['metodoPago'] = root.get('MetodoPago')
@@ -85,8 +87,7 @@ def shortXmlByDate (xmlsInfo):
             if date == xmlInfo['fecha']: 
                 shortedData.append (xmlInfo)
                 break
-    
-    print (len(shortedData))
+
     return shortedData
 
 def formatDataEgresos (allInfoXml): 
@@ -183,8 +184,8 @@ def formatDataIngresos (allInfoXml):
             currentInfo.append (importe)
             currentInfo.append ("")
         else: 
-            currentInfo.append (importe)
             currentInfo.append ("")
+            currentInfo.append (importe)
 
         currentInfo.append (importe)
         currentInfo.append (iva)
@@ -204,7 +205,8 @@ def getXmlEgresosInfo (folder):
         if file.endswith('.xml'): 
             xlmPath = os.path.join (folder, file)
             info = extract_information_xml(xlmPath)
-            extractedInfo.append (info)
+            if info: 
+                extractedInfo.append (info)
 
     # Short data
     shortedInfo = shortXmlByDate (extractedInfo)
@@ -221,7 +223,8 @@ def getXmlIngresosInfo (folder):
         if file.endswith('.xml'): 
             xlmPath = os.path.join (folder, file)
             info = extract_information_xml(xlmPath)
-            extractedInfo.append (info)
+            if info: 
+                extractedInfo.append (info)
         
     # Short data
     shortedInfo = shortXmlByDate (extractedInfo)
