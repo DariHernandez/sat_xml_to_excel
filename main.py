@@ -1,9 +1,9 @@
 #! python3
 #Extract infomation from xml files and copy to the clipboard
 
-import os, openpyxl, string, pprint
-from xml.etree import ElementTree
+import os, openpyxl, string
 from xml_info import getXmlEgresosInfo, getXmlIngresosInfo
+from styles import formatData
 
 def writeInfo (sheet, col, row, data):
     """ Write data in a wb sheet"""
@@ -12,7 +12,8 @@ def writeInfo (sheet, col, row, data):
     for dataLine in data: 
         currentCol = col 
         for dataItem in dataLine:
-            sheet[chars[currentCol-1] + str(currentRow)] = dataItem
+            currentCell = chars[currentCol-1] + str(currentRow) 
+            sheet[currentCell] = dataItem
             currentCol += 1
         currentRow += 1 
     
@@ -180,5 +181,11 @@ for folder in os.listdir (path):
                     writeTotals (sheet, columnIngresos + 3, 5, 5, data)
 
                 print ('XML files information written in "%s" sheet, "%s" table.' % (sheetName, subfolder))
-print ("File '%s' saved." % (filePath))
+
 wb.save (filePath)
+
+# TEST
+formatData (filePath, sheetName, columnIngresos, 5, 8, 100)
+formatData (filePath, sheetName, columnEgresos, 5, 12, 100)
+
+print ("File '%s' saved." % (filePath))

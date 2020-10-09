@@ -19,8 +19,8 @@ def getIngresoEgreso (comprobante, cantidad):
     else: 
         value = 0
     
-    return round(value, 2)
-
+    return value
+    
 def extract_information_xml (file):
     """Extract information from xml files"""
     fileInfo = {} 
@@ -136,9 +136,9 @@ def formatDataEgresos (allInfoXml):
         currentInfo.append (info['emisor'])
 
         #quantities
-        importe = info['subtotal'] - info ['descuento']
-        iva = info ['total'] - importe
-        total = info['total']
+        importe = round(info['subtotal'] - info ['descuento'], 2)
+        iva = round (info ['total'] - importe)
+        total = round (info['total'])
 
         if 'metodoPago' in info.keys() and info['metodoPago'] == 'PPD': #Check if is PDD
             currentInfo.append ("")
