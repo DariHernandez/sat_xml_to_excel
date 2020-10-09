@@ -2,7 +2,7 @@
 # Format the xlsx file
 
 import openpyxl, string
-from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 
 chars = list(string.ascii_lowercase)
 
@@ -16,7 +16,6 @@ def setWidthColumn (sheet, currentCell, currentCol):
 
     if currentCell.value == "X" or width > sheet.column_dimensions[chars[currentCol-1]].width: 
         sheet.column_dimensions[chars[currentCol-1]].width = width
-
 
 def formatData (filePath, sheetName, colStart, rowStart, colNum, rowNum): 
 
@@ -39,8 +38,6 @@ def formatData (filePath, sheetName, colStart, rowStart, colNum, rowNum):
 
             # Set width for all +columns
             setWidthColumn (sheet, currentCell, currentCol)
-
-            print (titleName, subtitleName, currentCellName)
 
             if titleName == "fecha": 
                 currentCell.alignment = Alignment(horizontal='center')                   
@@ -71,8 +68,53 @@ def formatData (filePath, sheetName, colStart, rowStart, colNum, rowNum):
 
     wb.save (filePath)
 
+def insertLogo (filePath, sheetName, logo, anchor, width, height): 
+    """ Paste logo in each page"""
+    # Open file 
+    wb = openpyxl.load_workbook(filePath) 
+    sheet = wb [sheetName]
 
+    # Paste logo
+    img = openpyxl.drawing.image.Image(logo)
+    img.anchor = anchor
+    img.width = width
+    img.height = height
+    sheet.add_image(img)
 
+    # Save
+    wb.save (filePath)
+    print ('Added image %s' % (logo))
+
+def formatHeaders (filePath, sheetName, colStart, rowStart, colNum, rowNum): 
+    """ Set format for the headers """
+    wb = openpyxl.load_workbook(filePath) 
+    sheet = wb [sheetName]
+
+    # Get and format cells
+    for currentRow in range (rowStart, rowStart + rowNum): 
+        for currentCol in range (colStart, colStart + colNum):
+            currentCellName = "%s%s" % (chars[currentCol-1], currentRow)
+            currentCell = sheet[currentCellName]
+
+            if currentCellName == "a1" or currentCellName == "a2" or currentCellName == "j1" or currentCellName == "j2":
+                currentCell.font = Font(name='Corben',
+                                    size=28,
+                                    bold=True,
+                                    color='003399')
+                currentCell.alignment = Alignment(horizontal='center')
+                sheet.row_dimensions[1].height = 42
+                sheet.row_dimensions[2].height = 42
+            elif currentCellName == "a4" or currentCellName == "a5" or currentCellName == "j4" or currentCellName == "j5": 
+                currentCell.font = Font(size=14, bold=True)
+                currentCell.alignment = Alignment(horizontal='center')
+            elif currentRow == 7 or currentRow == 8: 
+                currentCell.font = Font(bold=True)
+                currentCell.alignment = Alignment(horizontal='center', vertical='center')
+                currentCell.border = Border(left=Side(border_style="thin", color='FF000000'),
+                                            right=Side(border_style="thin", color='FF000000'),
+                                            top=Side(border_style="thin", color='FF000000'),
+                                            bottom=Side(border_style="thin", color='FF000000'))
+    wb.save (filePath)
 
 
 

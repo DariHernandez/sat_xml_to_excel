@@ -3,7 +3,7 @@
 
 import os, openpyxl, string
 from xml_info import getXmlEgresosInfo, getXmlIngresosInfo
-from styles import formatData
+from styles import formatData, insertLogo, formatHeaders
 
 def writeInfo (sheet, col, row, data):
     """ Write data in a wb sheet"""
@@ -86,15 +86,6 @@ def getSheet (wb, sheetName):
     
     return sheet
 
-def insertLogo (logo, anchor, width, height): 
-    """ Paste logo in each page"""
-    # Paste logo
-    img = openpyxl.drawing.image.Image(logo)
-    img.anchor = anchor
-    img.width = width
-    img.height = height
-    sheet.add_image(img)
-
 def writeMergeCells (sheet, colStart, rowStart, colNum, rowNum, text): 
     """ Write info in cell and merge"""
     textCell = chars[colStart-1] + str(rowStart)
@@ -102,10 +93,20 @@ def writeMergeCells (sheet, colStart, rowStart, colNum, rowNum, text):
     mergeCells = chars[colStart-1] + str(rowStart) + ":" + chars[colStart + colNum - 2] + str(rowStart + rowNum -1)
     sheet.merge_cells(mergeCells)
         
+def insertHerader (sheet, colStart, rowStart, colNum, textHeaders):
+    """ Insert rows and merge cells to the headers of the tables"""
+    # Insert rows 
+    for row in range(len(textHeaders)): 
+        currentRow = rowStart + row
+        sheet.insert_rows (currentRow)
+    
+        
+
 
 path = "/home/dari/Documentos/dari_developer_fact"
 filePath = os.path.join (path, (os.path.basename (path) + ".xlsx"))
 logoPath = os.path.join ("/home/dari/Projects/python/04 excel, xml and csv files/sat_xml_to_excel/logo.png")
+titlePath = os.path.join ("/home/dari/Projects/python/04 excel, xml and csv files/sat_xml_to_excel/title.png")
 allInfo = []
 ingresosFolder = "REGISTRO ANALÍTICO DE EGRESOS"
 egresosFolder = "REGISTRO ANALÍTICO DE INGRESOS"
@@ -145,47 +146,56 @@ for folder in os.listdir (path):
         # Seach and process files
         for subfolder in os.listdir (os.path.join (path, folder)):
             if os.path.isdir (os.path.join(path, folder, subfolder)): 
+                headersEgreso = []
+                headersEgreso.append (folder)
+                headersEgreso.append (subfolder)
+                
                 # Write titles and info in merge cells
                 #writeMergeCells (sheet, colStart, rowStart, colNum, rowNum, text)
                 tableHeader = os.path.basename(path)
-                writeMergeCells (sheet, columnIngresos, 1, 8, 1, tableHeader)
-                writeMergeCells (sheet, columnIngresos, 2, 8, 1, subfolder)
-                writeMergeCells (sheet, columnEgresos, 1, 11, 1, tableHeader)
-                writeMergeCells (sheet, columnEgresos, 2, 11, 1, subfolder)
+                writeMergeCells (sheet, columnIngresos, 1, 8, 1, "AUTOREPARACIONES")
+                writeMergeCells (sheet, columnIngresos, 2, 8, 1, "ESPECIALIZADAS")
+                writeMergeCells (sheet, columnIngresos, 4, 8, 1, subfolder)
+                writeMergeCells (sheet, columnIngresos, 5, 8, 1, folder)
+                writeMergeCells (sheet, columnEgresos, 1, 11, 1, "AUTOREPARACIONES")
+                writeMergeCells (sheet, columnEgresos, 2, 11, 1, "ESPECIALIZADAS")
+                writeMergeCells (sheet, columnEgresos, 4, 11, 1, subfolder)
+                writeMergeCells (sheet, columnEgresos, 5, 11, 1, folder)
+                
                 if "egresos" in subfolder.lower(): 
                     # Titles
-                    writeTitles (sheet, columnEgresos, 3, titlesEgreso)
+                    writeTitles (sheet, columnEgresos, 7, titlesEgreso)
 
                     # Write table
                     data = getXmlEgresosInfo (os.path.join(path, folder, subfolder))
-                    writeInfo (sheet, col=columnEgresos, row=5, data=data)
-
-                    # Add image
-                    insertLogo (logoPath, 'J1', 50, 50)
+                    writeInfo (sheet, col=columnEgresos, row=9, data=data)
 
                     # Totals
-                    writeTotals (sheet, columnEgresos + 6, 5, 5, data)
-
+                    writeTotals (sheet, col = columnEgresos + 6, row = 9, numOfColumns = 5, data=data)
                 elif "ingresos" in subfolder.lower():  
                     # Titles
-                    writeTitles (sheet, columnIngresos, 3, titlesIngreso)
+                    writeTitles (sheet, columnIngresos, 7, titlesIngreso)
 
                     # Write table
                     data = getXmlIngresosInfo (os.path.join(path, folder, subfolder))
-                    writeInfo (sheet, col=columnIngresos, row=5, data=data)
-
-                    # Add image
-                    insertLogo (logoPath, 'A1', 50, 50)
+                    writeInfo (sheet, col=columnIngresos, row=9, data=data)
 
                     # Totals
-                    writeTotals (sheet, columnIngresos + 3, 5, 5, data)
-
+                    writeTotals (sheet, col = columnIngresos + 3, row = 9, numOfColumns = 5, data=data)
                 print ('XML files information written in "%s" sheet, "%s" table.' % (sheetName, subfolder))
 
+#insertHerader (sheet, colStart=columnEgresos, rowStart=0, colNum=11, textHeaders=headersEgreso)
 wb.save (filePath)
 
-# TEST
-formatData (filePath, sheetName, columnIngresos, 5, 8, 100)
-formatData (filePath, sheetName, columnEgresos, 5, 12, 100)
+# Set styles
+formatData (filePath, sheetName, columnIngresos,9, 8, 100)
+formatData (filePath, sheetName, columnEgresos, 9, 12, 100)
+
+# Add logos
+insertLogo (filePath, sheetName, logoPath, 'A1', 120, 120)
+insertLogo (filePath, sheetName, logoPath, 'J1', 120, 120)
+
+formatHeaders (filePath, sheetName, columnIngresos, 1, 8, 8)
+formatHeaders (filePath, sheetName, columnEgresos, 1, 12, 8)
 
 print ("File '%s' saved." % (filePath))
