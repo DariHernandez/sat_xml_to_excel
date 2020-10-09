@@ -137,6 +137,9 @@ try:
 except FileNotFoundError: 
     wb = openpyxl.Workbook()
 
+dataEgresos = []
+dataIngresos = []
+
 for folder in os.listdir (path): 
     if os.path.isdir (os.path.join(path, folder)): 
 
@@ -168,6 +171,7 @@ for folder in os.listdir (path):
 
                     # Write table
                     data = getXmlEgresosInfo (os.path.join(path, folder, subfolder))
+                    dataEgresos = data
                     writeInfo (sheet, col=columnEgresos, row=9, data=data)
 
                     # Totals
@@ -178,6 +182,7 @@ for folder in os.listdir (path):
 
                     # Write table
                     data = getXmlIngresosInfo (os.path.join(path, folder, subfolder))
+                    dataIngresos = data
                     writeInfo (sheet, col=columnIngresos, row=9, data=data)
 
                     # Totals
@@ -188,8 +193,8 @@ for folder in os.listdir (path):
 wb.save (filePath)
 
 # Set styles
-formatData (filePath, sheetName, columnIngresos,9, 8, 100)
-formatData (filePath, sheetName, columnEgresos, 9, 12, 100)
+formatData (filePath, sheetName, columnIngresos, 9, dataIngresos)
+formatData (filePath, sheetName, columnEgresos, 9, dataEgresos)
 
 # Add logos
 insertLogo (filePath, sheetName, logoPath, 'A1', 120, 120)

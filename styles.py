@@ -17,10 +17,13 @@ def setWidthColumn (sheet, currentCell, currentCol):
     if currentCell.value == "X" or width > sheet.column_dimensions[chars[currentCol-1]].width: 
         sheet.column_dimensions[chars[currentCol-1]].width = width
 
-def formatData (filePath, sheetName, colStart, rowStart, colNum, rowNum): 
+def formatData (filePath, sheetName, colStart, rowStart, data): 
 
     wb = openpyxl.load_workbook(filePath) 
     sheet = wb [sheetName]
+    
+    colNum = len(data[0])
+    rowNum = len(data)
 
     table = chars[colStart-1].upper() + str(rowStart) + ":" + chars[colStart + colNum -1].upper() + str(rowStart + rowNum)
     print ('Applying styles to table %s' % (table))
@@ -66,6 +69,16 @@ def formatData (filePath, sheetName, colStart, rowStart, colNum, rowNum):
             elif titleName == "comentarios": 
                 currentCell.alignment = Alignment(horizontal='left')
 
+    # Set format to totals
+    totalsRow = rowStart + rowNum 
+    for currentCol in range (colStart, colStart + colNum):
+        currentCellName = "%s%s" % (chars[currentCol-1], totalsRow)
+        currentCell = sheet[currentCellName]
+        if currentCell.value: 
+            currentCell.alignment = Alignment(horizontal='right')
+            currentCell.number_format = '#,##0.00'
+            currentCell.font = Font(bold=True)
+            currentCell.border = Border(top=Side(border_style="thin", color='FF000000'))
     wb.save (filePath)
 
 def insertLogo (filePath, sheetName, logo, anchor, width, height): 
