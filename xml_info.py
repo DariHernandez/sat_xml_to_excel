@@ -1,7 +1,7 @@
 #! python3
 # Extract, format, shorted and process info from xml files
 
-import string, os
+import string, os, pprint
 from xml.etree import ElementTree
 
 
@@ -73,25 +73,24 @@ def extract_information_xml (file):
 
     return fileInfo
 
+def burbleShort(unaLista):
+    """ Shoirt dates with burble"""
+    for numPasada in range(len(unaLista)-1,0,-1):
+        for i in range(numPasada):
+            if unaLista[i]['fecha']>unaLista[i+1]['fecha']:
+                temp = unaLista[i]
+                unaLista[i] = unaLista[i+1]
+                unaLista[i+1] = temp
+    return unaLista
+
 def shortXmlByDate (xmlsInfo): 
     """ Short a list of dicctionaries from xml info"""
-    dates = []
-    shortedData = []
+    # Short dates
+    shortedData = burbleShort (xmlsInfo)
 
-    # Get dates
-    for xmlInfo in xmlsInfo: 
-        dates.append(xmlInfo['fecha'])
-    
-    #Short data
-    dates.sort()
-
-    for date in dates: 
-        for xmlInfo in xmlsInfo: 
-            if date == xmlInfo['fecha']: 
-                shortedData.append (xmlInfo)
-                break
-
+    pprint.pprint (shortedData)
     return shortedData
+    
 
 def formatDataEgresos (allInfoXml): 
     """Format data to Egresos info"""
