@@ -1,7 +1,7 @@
 #! python3
 # Extract, format, shorted and process info from xml files
 
-import string, os, pprint
+import string, os, datetime, time, pprint
 from xml.etree import ElementTree
 
 
@@ -43,6 +43,14 @@ def extract_information_xml (file):
     fileInfo['emisor']       = emisor.get('Nombre')
     fileInfo['receptor']     = receptor.get('Nombre')
     fileInfo['uuid']         = timbreFiscalDigital.get('UUID')
+
+    # Format date
+    """
+    date = datetime.datetime.strptime (fileInfo['fecha'], '%Y-%m-%dT%H:%M:%S')
+    fileInfo['fecha'] = str(date.day) + "-" + str(date.month) + "-" + str(date.year) + "T" \
+    + str(date.hour) + ":" + str(date.min) + ":" + str(date.second)
+    """
+
 
     # Replace name by rfc
     if not fileInfo['emisor']:
@@ -87,8 +95,6 @@ def shortXmlByDate (xmlsInfo):
     """ Short a list of dicctionaries from xml info"""
     # Short dates
     shortedData = burbleShort (xmlsInfo)
-
-    pprint.pprint (shortedData)
     return shortedData
     
 

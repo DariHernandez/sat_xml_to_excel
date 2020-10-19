@@ -1,7 +1,7 @@
 #! python3
 #Extract infomation from xml files and copy to the clipboard
 
-import os, openpyxl, string
+import os, openpyxl, string, pprint
 from xml_info import getXmlEgresosInfo, getXmlIngresosInfo
 from styles import formatData, insertLogo, formatHeaders
 
@@ -153,19 +153,13 @@ for folder in os.listdir (path):
                 headersEgreso.append (folder)
                 headersEgreso.append (subfolder)
                 
-                # Write titles and info in merge cells
-                #writeMergeCells (sheet, colStart, rowStart, colNum, rowNum, text)
-                tableHeader = os.path.basename(path)
-                writeMergeCells (sheet, columnIngresos, 1, 8, 1, "AUTOREPARACIONES")
-                writeMergeCells (sheet, columnIngresos, 2, 8, 1, "ESPECIALIZADAS")
-                writeMergeCells (sheet, columnIngresos, 4, 8, 1, subfolder)
-                writeMergeCells (sheet, columnIngresos, 5, 8, 1, folder)
-                writeMergeCells (sheet, columnEgresos, 1, 11, 1, "AUTOREPARACIONES")
-                writeMergeCells (sheet, columnEgresos, 2, 11, 1, "ESPECIALIZADAS")
-                writeMergeCells (sheet, columnEgresos, 4, 11, 1, subfolder)
-                writeMergeCells (sheet, columnEgresos, 5, 11, 1, folder)
-                
                 if "egresos" in subfolder.lower(): 
+                    # Set headers
+                    writeMergeCells (sheet, columnEgresos, 1, 11, 1, "AUTOREPARACIONES")
+                    writeMergeCells (sheet, columnEgresos, 2, 11, 1, "ESPECIALIZADAS")
+                    writeMergeCells (sheet, columnEgresos, 4, 11, 1, subfolder)
+                    writeMergeCells (sheet, columnEgresos, 5, 11, 1, folder)
+
                     # Titles
                     writeTitles (sheet, columnEgresos, 7, titlesEgreso)
 
@@ -177,6 +171,12 @@ for folder in os.listdir (path):
                     # Totals
                     writeTotals (sheet, col = columnEgresos + 6, row = 9, numOfColumns = 5, data=data)
                 elif "ingresos" in subfolder.lower():  
+                    # Set headers
+                    writeMergeCells (sheet, columnIngresos, 1, 8, 1, "AUTOREPARACIONES")
+                    writeMergeCells (sheet, columnIngresos, 2, 8, 1, "ESPECIALIZADAS")
+                    writeMergeCells (sheet, columnIngresos, 4, 8, 1, subfolder)
+                    writeMergeCells (sheet, columnIngresos, 5, 8, 1, folder)
+
                     # Titles
                     writeTitles (sheet, columnIngresos, 7, titlesIngreso)
 

@@ -44,9 +44,6 @@ def formatData (filePath, sheetName, colStart, rowStart, data):
 
             if titleName == "fecha": 
                 currentCell.alignment = Alignment(horizontal='center')                   
-            elif subtitleName == "público g." or subtitleName == "clientes": 
-                currentCell.alignment = Alignment(horizontal='right')
-                currentCell.number_format = '#,##0.00'
             elif subtitleName == "ing": 
                 currentCell.font = Font (size=12, bold=True)
                 currentCell.alignment = Alignment(horizontal='center')
@@ -63,7 +60,9 @@ def formatData (filePath, sheetName, colStart, rowStart, data):
                 currentCell.alignment = Alignment(horizontal='center')
             elif titleName == "proveedor": 
                 currentCell.alignment = Alignment(horizontal='left')
-            elif subtitleName == "importe" or subtitleName == "iva" or titleName == "total":
+            elif subtitleName == "importe" or subtitleName == "iva" \
+                or titleName == "subtotal" or titleName == "iva" or titleName == "total"\
+                or subtitleName == "público g." or subtitleName == "clientes":
                 currentCell.alignment = Alignment(horizontal='right')
                 currentCell.number_format = '#,##0.00'  
             elif titleName == "comentarios": 
