@@ -1,5 +1,6 @@
 # sat_xml_extractor
 ## Description
+This is a terminal program.
 This project reads the *xml* files issued by the *sat* found in certain folders, later processes the information and inserts it into a *spreadsheet* to finally give it *styles and format*
 **Currently this project is for personal use and has no customization options**
 
